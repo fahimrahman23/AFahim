@@ -1,0 +1,61 @@
+
+name: Build Windows 11 Desktop Application
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Publish as GitHub Release'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r desktop_app/requirements.txt
+          python -m playwright install chromium
+
+      - name: Build Standalone EXE
+        working-directory: ./desktop_app
+        run: python -m PyInstaller --noconfirm mewe_autofollow.spec
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress --yes
+
+      - name: Compile Inno Setup Installer (Setup.exe)
+        working-directory: ./desktop_app
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" inno_setup.iss'
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeWe_AutoFollow_Windows11_Setup
+          path: ./desktop_app/release/MeWe_AutoFollow_Setup.exe
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.create_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || 'v1.0.0' }}
+          name: MeWe AutoFollow v1.0.0 (Windows 11)
+          files: ./desktop_app/release/MeWe_AutoFollow_Setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
