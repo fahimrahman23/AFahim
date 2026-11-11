@@ -21,7 +21,7 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-from config import AppConfig
+from config import AppConfig, PROFILE_NAME
 from bot import MeWeBot
 
 # Windows 11 Fluent Dark Palette
@@ -51,7 +51,7 @@ COLORS = {
 class MeWeAutoFollowApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("MeWe AutoFollow - Windows 11 Desktop Edition")
+        self.root.title("MeWe AutoFollow - Windows 11 Desktop Edition" + (f"  [Profile: {PROFILE_NAME}]" if PROFILE_NAME else ""))
         self.root.geometry("1100x750")
         self.root.minsize(980, 680)
         self.root.configure(bg=COLORS["bg_dark"])
@@ -217,7 +217,7 @@ class MeWeAutoFollowApp:
             min_d, max_d = max_d, min_d
         self.config.min_delay_seconds = max(1.0, min_d)
         self.config.max_delay_seconds = max(1.0, max_d)
-        self.config.max_follows_session = max(1, limit)
+        self.config.max_follows_session = max(0, limit)  # 0 = unlimited
         self.config.auto_scroll_enabled = self.var_scroll.get()
         self.config.save()
 
@@ -258,7 +258,7 @@ class MeWeAutoFollowApp:
                 messagebox.showwarning("CAPTCHA", ev[1])
             elif ev[0] == "stats":
                 s = ev[1]
-                self.metrics["session"].config(text=f"{s.get('session_follows', 0)} / {self.config.max_follows_session}")
+                self.metrics["session"].config(text=f"{s.get('session_follows', 0)} / {self.config.max_follows_session or '∞'}")
                 self.metrics["scanned"].config(text=str(s.get("profiles_scanned", 0)))
                 self.metrics["skipped"].config(text=str(s.get("skipped_already_following", 0)))
         self.root.after(100, self._process_event_queue)

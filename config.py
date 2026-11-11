@@ -6,8 +6,23 @@ Strict Privacy Rule: No passwords or personal credentials are ever saved.
 
 import json
 import os
+import sys
 from pathlib import Path
 from dataclasses import dataclass, asdict
+
+def _get_profile_name() -> str:
+    """Reads '--profile NAME' from the command line (empty = default profile)."""
+    args = sys.argv[1:]
+    for i, a in enumerate(args):
+        if a == "--profile" and i + 1 < len(args):
+            return "".join(ch for ch in args[i + 1] if ch.isalnum() or ch in "-_")
+        if a.startswith("--profile="):
+            return "".join(ch for ch in a.split("=", 1)[1] if ch.isalnum() or ch in "-_")
+    return ""
+
+
+PROFILE_NAME = _get_profile_name()
+
 
 @dataclass
 class AppConfig:
@@ -37,7 +52,8 @@ class AppConfig:
 
     @classmethod
     def get_chrome_profile_dir(cls) -> Path:
-        profile_dir = cls.get_config_dir() / "chrome_user_data"
+        folder = f"chrome_user_data_{PROFILE_NAME}" if PROFILE_NAME else "chrome_user_data"
+        profile_dir = cls.get_config_dir() / folder
         profile_dir.mkdir(parents=True, exist_ok=True)
         return profile_dir
 

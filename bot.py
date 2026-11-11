@@ -213,12 +213,12 @@ class MeWeBot:
             try:
                 self._context = self._playwright.chromium.launch_persistent_context(
                     user_data_dir=user_data_dir, headless=False, channel=channel,
-                    args=launch_args, no_viewport=True,
+                    args=launch_args, no_viewport=True, chromium_sandbox=True,
                 )
             except Exception:
                 self._context = self._playwright.chromium.launch_persistent_context(
                     user_data_dir=user_data_dir, headless=False,
-                    args=launch_args, no_viewport=True,
+                    args=launch_args, no_viewport=True, chromium_sandbox=True,
                 )
 
             self._page = self._context.pages[0] if self._context.pages else self._context.new_page()
@@ -263,7 +263,7 @@ class MeWeBot:
             self.stop("Browser closed")
             return
 
-        if self.stats["session_follows"] >= cfg.max_follows_session:
+        if cfg.max_follows_session > 0 and self.stats["session_follows"] >= cfg.max_follows_session:
             self.on_log(f"Session limit reached ({self.stats['session_follows']}). Stopping.", "SUCCESS")
             self.stop("Limit reached")
             return
@@ -302,7 +302,7 @@ class MeWeBot:
             self.stats["session_follows"] += 1
             self._emit_stats()
             self.on_log(
-                f"Followed profile! [Session: {self.stats['session_follows']} / {cfg.max_follows_session}]",
+                f"Followed profile! [Session: {self.stats['session_follows']} / {cfg.max_follows_session or '∞'}]",
                 "SUCCESS",
             )
 
