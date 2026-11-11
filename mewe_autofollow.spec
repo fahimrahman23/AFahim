@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=['.'],
     datas=[*playwright_datas],
-    hiddenimports=['tkinter', 'tkinter.ttk', 'queue', 'threading', 'dataclasses', 'pathlib', *playwright_hidden],
+    hiddenimports=['bot', 'config', 'tkinter', 'tkinter.ttk', 'queue', 'threading', 'dataclasses', 'pathlib', *playwright_hidden],
     excludes=['pytest', 'unittest'],
     console=False,
 )
